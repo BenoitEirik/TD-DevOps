@@ -1,0 +1,4 @@
+- name: Install docker-engine
+  hosts: VM
+  roles:
+    - role: "docker"
