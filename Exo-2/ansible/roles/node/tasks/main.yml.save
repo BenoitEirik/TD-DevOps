@@ -1,0 +1,10 @@
+- name: Pull node image
+  docker_image:
+    name: node
+
+ name: ensure a container is running
+      docker_container:
+        name: node
+        state: started
+      	ports:
+          - "5000:5000"

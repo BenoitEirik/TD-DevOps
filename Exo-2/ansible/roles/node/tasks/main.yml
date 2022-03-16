@@ -1,0 +1,86 @@
+- name: Creates directory
+  file:
+    path: /www
+    state: directory
+
+- name: Create package.json file
+  copy:
+    dest: /www/package.json
+    content: |
+      {
+        "name": "docker_web_app",
+        "version": "1.0.0",
+        "description": "Node.js on Docker",
+        "author": "First Last <first.last@example.com>",
+        "main": "server.js",
+        "scripts": {
+          "start": "node server.js"
+        },
+        "dependencies": {
+          "express": "^4.16.1"
+        }
+      }
+
+- name: Create server.js file
+  copy:
+    dest: /www/server.js
+    content: |
+      'use strict';
+
+      const express = require('express');
+
+      // Constants
+      const PORT = 8080;
+      const HOST = '0.0.0.0';
+
+      // App
+      const app = express();
+      app.get('/', (req, res) => {
+        res.send('Hello World');
+      });
+
+      app.listen(PORT, HOST);
+      console.log(`Running on http://${HOST}:${PORT}`);
+
+- name: Install pip3
+  apt:
+    name: python3-pip
+
+- name: Create Dockerfile
+  copy:
+    dest: /www/Dockerfile
+    content: |
+      FROM node:16
+      WORKDIR /usr/src/app
+      COPY package*.json ./
+      RUN npm install
+      COPY . .
+      EXPOSE 8080
+      CMD [ "node", "server.js" ]
+
+- name: Install docker module
+  pip:
+    name: docker
+
+- name: Download node image
+  docker_image:
+    name: node
+    state: present
+    source: pull
+
+- name: build container image
+  docker_image:
+    name: node-server
+    build:
+      path: /www
+    source: build
+
+- name: Run node-server container
+  docker_container:
+    image: node-server
+    name: node-server-run
+    state: started
+    detach: yes
+    auto_remove: false
+    ports:
+      - "8080:8080"
