@@ -1,0 +1,99 @@
+- name: Creates directory
+  file:
+    path: /www2
+    state: directory
+
+- name: Create package.json file
+  copy:
+    dest: /www2/package.json
+    content: |
+      {
+        "name": "docker_web_app2",
+        "version": "1.0.0",
+        "description": "Node.js on Docker with docker-compose",
+        "author": "First Last <first.last@example.com>",
+        "main": "server.js",
+        "scripts": {
+          "start": "node server.js"
+        },
+        "dependencies": {
+          "express": "^4.16.1"
+        }
+      }
+
+- name: Create server.js file
+  copy:
+    dest: /www2/server.js
+    content: |
+      'use strict';
+
+      const express = require('express');
+
+      // Constants
+      const PORT = 8081;
+      const HOST = '0.0.0.0';
+
+      // App
+      const app = express();
+      app.get('/', (req, res) => {
+        res.send('Hello World, from container run with docker-compose');
+      });
+
+      app.listen(PORT, HOST);
+      console.log(`Running on http://${HOST}:${PORT}`);
+
+- name: Install pip3
+  apt:
+    name: python3-pip
+
+- name: Create Dockerfile
+  copy:
+    dest: /www2/Dockerfile
+    content: |
+      FROM node:16
+      WORKDIR /usr/src/app2
+      COPY package*.json ./
+      RUN npm install
+      COPY . .
+      EXPOSE 8081
+      CMD [ "node", "server.js" ]
+
+- name: Create docker-compose.yml
+  copy:
+    dest: /www2/docker-compose.yml
+    content: |
+      version: '3'
+      services:
+        node2:
+          build:
+            context: /www2
+            dockerfile: Dockerfile
+          ports: 
+            - "8081:8081"
+          volumes:
+            - .:/usr/src/app2
+            - node_modules:/usr/src/app2/node_modules
+      volumes:
+        node_modules:
+
+- name: Install docker-compose module
+  pip:
+    name: docker-compose
+
+- name: Install docker-compose
+  get_url: 
+    url : https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x'
+
+- name: Download node image
+  docker_image:
+    name: node
+    state: present
+    source: pull
+
+- name: Build & run docker-compose
+  docker_compose:
+    project_src: /www2
+    build: yes
+  register: output
