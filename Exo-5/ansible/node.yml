@@ -1,0 +1,4 @@
+- name: Node container installation playbook
+  hosts: VM
+  roles:
+    - role: node

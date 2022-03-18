@@ -1,0 +1,4 @@
+- name: Minikube installation
+  hosts: VM
+  roles:
+    - role: minikube

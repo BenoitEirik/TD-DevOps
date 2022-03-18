@@ -1,0 +1,16 @@
+- name: Download minikube
+  get_url: 
+    url : https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+    dest: /tmp
+    mode: 'u+x,g+x'
+    
+- name: Install package
+  apt:
+    deb: /tmp/minikube_latest_amd64.deb
+
+- name: Install conntrack package
+  apt:
+    name: conntrack
+
+- name: Launch minikube
+  command: minikube start --driver=none

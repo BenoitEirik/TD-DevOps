@@ -1,0 +1,4 @@
+- name: Node container installation playbook with docker-compose
+  hosts: VM
+  roles:
+    - role: node2
